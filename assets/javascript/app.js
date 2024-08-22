@@ -1,10 +1,8 @@
 // Establish WebSocket connection using Socket.IO
 const socket = io('http://localhost:5000');
 
-// Check if the connection is successful
-socket.on('connect', () => {
-    console.log('Connected to the server');
-});
+// Generate a unique ID for the client
+const clientId = Math.random().toString(36).substring(2, 15);
 
 // Get DOM elements
 const messagesDiv = document.getElementById('messages');
@@ -18,33 +16,32 @@ function addMessage(content, type) {
     messageDiv.textContent = content;
     messagesDiv.appendChild(messageDiv);
     messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to bottom
-
-    if (type === 'sent') {
-        messageDiv.classList.add('animate');
-        messageDiv.addEventListener('animationend', () => {
-            messageDiv.classList.remove('animate');
-        });
-    }
 }
 
 // Handle incoming messages
-socket.on('message', function(message) {
-    addMessage(message, 'received');
-});
-
-// Send a message
-sendButton.addEventListener('click', () => {
-    const message = messageInput.value.trim();
-    if (message) {
-        addMessage(message, 'sent');
-        socket.emit('message', message); // Emit message event to the server
-        messageInput.value = '';
+socket.on('message', function(data) {
+    // Check if the message is from this client
+    if (data.clientId !== clientId) {
+        addMessage(data.content, 'received');
     }
 });
 
-// Optional: Handle pressing Enter to send a message
+// Send a message
+function sendMessage() {
+    const message = messageInput.value.trim();
+    if (message) {
+        addMessage(message, 'sent'); // Display the message as "sent"
+        socket.emit('message', { content: message, clientId: clientId }); // Include the clientId with the message
+        messageInput.value = ''; // Clear the input
+    }
+}
+
+// Bind the send button click event
+sendButton.addEventListener('click', sendMessage);
+
+// Bind the Enter key press event
 messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        sendButton.click();
+        sendMessage();
     }
 });
