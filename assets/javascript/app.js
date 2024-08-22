@@ -1,6 +1,11 @@
 // Establish WebSocket connection using Socket.IO
 const socket = io('http://localhost:5000');
 
+// Check if the connection is successful
+socket.on('connect', () => {
+    console.log('Connected to the server');
+});
+
 // Get DOM elements
 const messagesDiv = document.getElementById('messages');
 const messageInput = document.getElementById('messageInput');
