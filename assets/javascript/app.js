@@ -1,5 +1,5 @@
-// Establish WebSocket connection
-const socket = new WebSocket('ws://localhost:5000'); // Adjust URL as needed
+// Establish WebSocket connection using Socket.IO
+const socket = io('http://localhost:5000');
 
 // Get DOM elements
 const messagesDiv = document.getElementById('messages');
@@ -23,17 +23,16 @@ function addMessage(content, type) {
 }
 
 // Handle incoming messages
-socket.onmessage = function(event) {
-    const message = JSON.parse(event.data);
-    addMessage(message.content, 'received');
-};
+socket.on('message', function(message) {
+    addMessage(message, 'received');
+});
 
 // Send a message
 sendButton.addEventListener('click', () => {
     const message = messageInput.value.trim();
     if (message) {
         addMessage(message, 'sent');
-        socket.send(JSON.stringify({ content: message }));
+        socket.emit('message', message); // Emit message event to the server
         messageInput.value = '';
     }
 });
@@ -44,4 +43,3 @@ messageInput.addEventListener('keypress', (e) => {
         sendButton.click();
     }
 });
-
